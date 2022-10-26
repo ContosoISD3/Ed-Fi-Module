@@ -1,0 +1,453 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "syn-oea-agtest"
+		},
+		"LS_SQL_Serverless_OEA_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_SQL_Serverless_OEA'"
+		},
+		"syn-oea-agtest-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'syn-oea-agtest-WorkspaceDefaultSqlServer'"
+		},
+		"LS_ADLS_OEA_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://stoeacisdedfi1.dfs.core.windows.net/"
+		},
+		"LS_HTTP_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().baseURL}"
+		},
+		"LS_HTTP_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "@{linkedService().clientID}"
+		},
+		"LS_KeyVault_OEA_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kv-oea-cisd-edfi1.vault.azure.net/"
+		},
+		"LS_REST_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().BaseURL}"
+		},
+		"LS_REST_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "@{linkedService().ClientId}"
+		},
+		"syn-oea-agtest-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://stoeaagtest.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/DS_JSON')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_OEA",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"stage": {
+						"type": "string",
+						"defaultValue": "1"
+					},
+					"path": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "stage@{dataset().stage}",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/LS_ADLS_OEA')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DS_JSON_File')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_OEA",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"stage": {
+						"type": "string",
+						"defaultValue": "1"
+					},
+					"path": {
+						"type": "string"
+					},
+					"fileName": {
+						"type": "string",
+						"defaultValue": "data.json"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().fileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "stage@{dataset().stage}",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/LS_ADLS_OEA')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DS_REST')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_REST",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"ClientId": {
+							"value": "@dataset().ClientId",
+							"type": "Expression"
+						},
+						"SecretName": {
+							"value": "@dataset().SecretName",
+							"type": "Expression"
+						},
+						"BaseURL": {
+							"value": "@dataset().BaseURL",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"RelativeURL": {
+						"type": "string"
+					},
+					"ClientId": {
+						"type": "string"
+					},
+					"SecretName": {
+						"type": "string"
+					},
+					"BaseURL": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().RelativeURL",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/LS_REST')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DS_SQL_Serverless')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQL_Serverless_OEA",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": {
+							"value": "@dataset().dbName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"dbName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "OEA_Framework"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/LS_SQL_Serverless_OEA')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LS_ADLS_OEA')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "Connection to the OEA data lake",
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLS_OEA_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LS_HTTP')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "Connection to an HTTP endpoint.\nThe baseURL parameter must be passed in from the dataset that utilizes this linked service.",
+				"parameters": {
+					"baseURL": {
+						"type": "string",
+						"defaultValue": "https://edfiodsapiwebsite-production-3rdql7wdxvrb2.azurewebsites.net"
+					},
+					"clientID": {
+						"type": "string",
+						"defaultValue": "nprmYc4GBokQ"
+					}
+				},
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('LS_HTTP_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('LS_HTTP_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS_KeyVault_OEA",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "EdFi-Client-Secret"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/linkedServices/LS_KeyVault_OEA')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LS_KeyVault_OEA')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('LS_KeyVault_OEA_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LS_REST')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"ClientId": {
+						"type": "string"
+					},
+					"SecretName": {
+						"type": "string"
+					},
+					"BaseURL": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LS_REST_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('LS_REST_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS_KeyVault_OEA",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "@linkedService().SecretName",
+							"type": "Expression"
+						}
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/linkedServices/LS_KeyVault_OEA')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LS_SQL_Serverless_OEA')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"dbName": {
+						"type": "string",
+						"defaultValue": "master"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_SQL_Serverless_OEA_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/syn-oea-agtest-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('syn-oea-agtest-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/syn-oea-agtest-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('syn-oea-agtest-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/spark3p1sm')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 5,
+					"minNodeCount": 3
+				},
+				"nodeCount": 3,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.1",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westus"
+		}
+	]
+}
