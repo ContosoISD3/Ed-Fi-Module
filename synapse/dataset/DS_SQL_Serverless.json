@@ -1,0 +1,26 @@
+{
+	"name": "DS_SQL_Serverless",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQL_Serverless_OEA",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"dbName": {
+					"value": "@dataset().dbName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"dbName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "OEA_Framework"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
