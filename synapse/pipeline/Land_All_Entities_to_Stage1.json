@@ -283,88 +283,6 @@
 				}
 			},
 			{
-				"name": "Update ChangeVersion",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Iterate over entities",
-						"dependencyConditions": [
-							"Completed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "RestSource",
-						"httpRequestTimeout": "00:01:40",
-						"requestInterval": "00.00:00:00.010",
-						"requestMethod": "GET",
-						"additionalHeaders": {
-							"Authorization": {
-								"value": "Bearer @{activity('Get-AccessToken').output.access_token}",
-								"type": "Expression"
-							}
-						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings"
-						}
-					},
-					"enableStaging": false
-				},
-				"inputs": [
-					{
-						"referenceName": "DS_REST",
-						"type": "DatasetReference",
-						"parameters": {
-							"RelativeURL": {
-								"value": "edfi/v@{pipeline().parameters.ApiVersion}/saas/core/changequeries/v1/@{pipeline().parameters.InstanceId}/@{pipeline().parameters.SchoolYear}/availableChangeVersions",
-								"type": "Expression"
-							},
-							"ClientId": {
-								"value": "@pipeline().parameters.ClientID",
-								"type": "Expression"
-							},
-							"SecretName": {
-								"value": "@pipeline().parameters.SecretName",
-								"type": "Expression"
-							},
-							"BaseURL": {
-								"value": "@pipeline().parameters.BaseURL",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "DS_JSON_File",
-						"type": "DatasetReference",
-						"parameters": {
-							"stage": "1",
-							"path": {
-								"value": "Landing/Transactional/@{pipeline().parameters.Directory}/v@{pipeline().parameters.ApiVersion}/DistrictId=@{pipeline().parameters.DistrictId}/SchoolYear=@{pipeline().parameters.SchoolYear}",
-								"type": "Expression"
-							},
-							"fileName": "ChangeVersion.json"
-						}
-					}
-				]
-			},
-			{
 				"name": "Set-FolderName",
 				"type": "SetVariable",
 				"dependsOn": [
@@ -499,6 +417,88 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Update ChangeVersion",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Iterate over entities",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get-AccessToken').output.access_token}",
+								"type": "Expression"
+							}
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_REST",
+						"type": "DatasetReference",
+						"parameters": {
+							"RelativeURL": {
+								"value": "edfi/v@{pipeline().parameters.ApiVersion}/saas/core/changequeries/v1/@{pipeline().parameters.InstanceId}/@{pipeline().parameters.SchoolYear}/availableChangeVersions",
+								"type": "Expression"
+							},
+							"ClientId": {
+								"value": "@pipeline().parameters.ClientID",
+								"type": "Expression"
+							},
+							"SecretName": {
+								"value": "@pipeline().parameters.SecretName",
+								"type": "Expression"
+							},
+							"BaseURL": {
+								"value": "@pipeline().parameters.BaseURL",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_JSON_File",
+						"type": "DatasetReference",
+						"parameters": {
+							"stage": "1",
+							"path": {
+								"value": "Landing/Transactional/@{pipeline().parameters.Directory}/v@{pipeline().parameters.ApiVersion}/DistrictId=@{pipeline().parameters.DistrictId}/SchoolYear=@{pipeline().parameters.SchoolYear}",
+								"type": "Expression"
+							},
+							"fileName": "ChangeVersion.json"
+						}
+					}
+				]
 			}
 		],
 		"parameters": {
