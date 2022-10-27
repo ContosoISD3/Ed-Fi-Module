@@ -49,6 +49,283 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('workspaceName'), '/Copy Data from REST API to ADLS')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Total count of Records",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Set-AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@pipeline().parameters.TotalCountURL",
+								"type": "Expression"
+							},
+							"connectVia": {
+								"referenceName": "AutoResolveIntegrationRuntime",
+								"type": "IntegrationRuntimeReference"
+							},
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@variables('AccessToken')",
+									"type": "Expression"
+								},
+								"Accept": "application/json"
+							}
+						}
+					},
+					{
+						"name": "Store Total Count",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get Total count of Records",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "TotalCount",
+							"value": {
+								"value": "@activity('Get Total count of Records').output.ADFWebActivityResponseHeaders['Total-Count']",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy Page to ADLS",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Store Total Count",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "@variables('AccessToken')",
+										"type": "Expression"
+									}
+								},
+								"paginationRules": {
+									"QueryParameters": {
+										"value": "Range:0:@{variables('TotalCount')}:500",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings",
+									"filePattern": "setOfObjects"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_REST",
+								"type": "DatasetReference",
+								"parameters": {
+									"RelativeURL": {
+										"value": "@pipeline().parameters.RelativeURL",
+										"type": "Expression"
+									},
+									"ClientId": {
+										"value": "@pipeline().parameters.ClientId",
+										"type": "Expression"
+									},
+									"SecretName": {
+										"value": "@pipeline().parameters.SecretName",
+										"type": "Expression"
+									},
+									"BaseURL": {
+										"value": "@pipeline().parameters.BaseURL",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_JSON",
+								"type": "DatasetReference",
+								"parameters": {
+									"stage": "1",
+									"path": {
+										"value": "@pipeline().parameters.SinkPath",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Get-AccessToken",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@pipeline().parameters.AuthURL",
+								"type": "Expression"
+							},
+							"connectVia": {
+								"referenceName": "AutoResolveIntegrationRuntime",
+								"type": "IntegrationRuntimeReference"
+							},
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"grant_type": "client_credentials"
+							},
+							"authentication": {
+								"type": "Basic",
+								"username": {
+									"value": "@pipeline().parameters.ClientID",
+									"type": "Expression"
+								},
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "LS_KeyVault_OEA",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": {
+										"value": "@pipeline().parameters.SecretName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					},
+					{
+						"name": "Set-AccessToken",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get-AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "AccessToken",
+							"value": {
+								"value": "Bearer @{activity('Get-AccessToken').output.access_token}",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"Limit": {
+						"type": "int",
+						"defaultValue": 500
+					},
+					"BaseURL": {
+						"type": "string",
+						"defaultValue": "https://api.edgraph.dev"
+					},
+					"TotalCountURL": {
+						"type": "String"
+					},
+					"RelativeURL": {
+						"type": "String"
+					},
+					"ClientId": {
+						"type": "String"
+					},
+					"SecretName": {
+						"type": "String"
+					},
+					"SinkPath": {
+						"type": "String"
+					},
+					"AuthURL": {
+						"type": "String"
+					}
+				},
+				"variables": {
+					"TotalCount": {
+						"type": "String"
+					},
+					"PageArray": {
+						"type": "Array"
+					},
+					"test": {
+						"type": "String"
+					},
+					"AccessToken": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "OEA_Framework/Extracts"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/datasets/DS_REST')]",
+				"[concat(variables('workspaceId'), '/datasets/DS_JSON')]",
+				"[concat(variables('workspaceId'), '/linkedServices/LS_KeyVault_OEA')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/DS_JSON')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -922,6 +1199,153 @@
 			},
 			"dependsOn": [],
 			"location": "westus"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Land_All_Entities_to_Stage1_copy1')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Update ChangeVersion",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET"
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_REST",
+								"type": "DatasetReference",
+								"parameters": {
+									"RelativeURL": {
+										"value": "edfi/v@{pipeline().parameters.ApiVersion}/saas/core/changequeries/v1/@{pipeline().parameters.InstanceId}/@{pipeline().parameters.SchoolYear}/availableChangeVersions",
+										"type": "Expression"
+									},
+									"ClientId": {
+										"value": "@pipeline().parameters.ClientID",
+										"type": "Expression"
+									},
+									"SecretName": {
+										"value": "@pipeline().parameters.SecretName",
+										"type": "Expression"
+									},
+									"BaseURL": {
+										"value": "@pipeline().parameters.BaseURL",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_JSON_File",
+								"type": "DatasetReference",
+								"parameters": {
+									"stage": "1",
+									"path": {
+										"value": "Landing/Transactional/@{pipeline().parameters.Directory}/v@{pipeline().parameters.ApiVersion}/DistrictId=@{pipeline().parameters.DistrictId}/SchoolYear=@{pipeline().parameters.SchoolYear}",
+										"type": "Expression"
+									},
+									"fileName": "ChangeVersion.json"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"ClientID": {
+						"type": "string",
+						"defaultValue": "vNaqQSu6q84STOXT"
+					},
+					"BaseURL": {
+						"type": "string",
+						"defaultValue": "https://api.edgraph.dev"
+					},
+					"Directory": {
+						"type": "string",
+						"defaultValue": "EdFi"
+					},
+					"SecretName": {
+						"type": "string",
+						"defaultValue": "EdFi-Client-Secret-2017"
+					},
+					"SchoolYear": {
+						"type": "string",
+						"defaultValue": "2017"
+					},
+					"InstanceId": {
+						"type": "string",
+						"defaultValue": "a01eaead-bc82-4e18-8b63-b1aa4af3bba1"
+					},
+					"ApiVersion": {
+						"type": "string",
+						"defaultValue": "5.3"
+					},
+					"isInitialLoad": {
+						"type": "bool",
+						"defaultValue": true
+					},
+					"DistrictId": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"AccessToken": {
+						"type": "String"
+					},
+					"MinChangeVersion": {
+						"type": "String"
+					},
+					"MaxChangeVersion": {
+						"type": "String"
+					},
+					"FolderName": {
+						"type": "String"
+					},
+					"DescriptorList": {
+						"type": "Array"
+					},
+					"PipelineName": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "EdFi/Single District Per Instance"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DS_REST')]",
+				"[concat(variables('workspaceId'), '/datasets/DS_JSON_File')]"
+			]
 		}
 	]
 }
