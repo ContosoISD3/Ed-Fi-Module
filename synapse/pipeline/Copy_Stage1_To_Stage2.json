@@ -219,6 +219,21 @@
 							"type": "JsonReadSettings"
 						}
 					},
+					"dataset": {
+						"referenceName": "DS_JSON_File",
+						"type": "DatasetReference",
+						"parameters": {
+							"stage": "2",
+							"path": {
+								"value": "@pipeline().parameters.IngestedFolder",
+								"type": "Expression"
+							},
+							"fileName": {
+								"value": "@variables('CheckpointKeyFileName')",
+								"type": "Expression"
+							}
+						}
+					},
 					"firstRowOnly": false
 				}
 			},
