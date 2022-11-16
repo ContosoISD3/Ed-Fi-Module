@@ -4064,7 +4064,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "1d17668a-320a-47d1-b342-fbce3c98cc2e"
+						"spark.autotune.trackingId": "1dde86cf-b7ac-4fa9-a750-8434d0d59406"
 					}
 				},
 				"metadata": {
@@ -4436,7 +4436,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "a386410b-48b2-4461-a246-16e95c2c96c9"
+						"spark.autotune.trackingId": "dd6e2380-85d4-4acf-94ee-3fceef211607"
 					}
 				},
 				"metadata": {
@@ -5019,7 +5019,16 @@
 							"        \"\"\" Loads a csv file as a dataframe based on the path specified \"\"\"\n",
 							"        options = {'format':'csv', 'header':header}\n",
 							"        df = spark.read.load(self.to_url(source_path), **options)\n",
-							"        return df      \n",
+							"        return df     \n",
+							"\n",
+							"    def load_csv_from_url(self, url, header=True):\n",
+							"        \"\"\" Loads a csv file as a dataframe based on the URL specified. \"\"\"  \n",
+							"        if header is False:\n",
+							"            return ValueError(\"Headers are required for loading data from url.\")\n",
+							"        raw_txt = oea.get_text_from_url(url)\n",
+							"        data = [x.split(',') for x in raw_txt.split('\\r\\n')[1:]]\n",
+							"        headers = raw_txt.split('\\r\\n')[0].split(',')\n",
+							"        df = spark.createDataFrame(data, headers) \n",
 							"\n",
 							"    def load_json(self, source_path, multiline=False):\n",
 							"        \"\"\" Loads a json file as a dataframe based on the path specified \"\"\"\n",
@@ -5133,7 +5142,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "146851bd-7b3b-4643-b770-eacb214dabe0"
+						"spark.autotune.trackingId": "afb37cf5-0e2d-4c96-8b14-abad94e829df"
 					}
 				},
 				"metadata": {
@@ -5228,7 +5237,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "d5e99999-30fa-4a9a-a45a-26574b1d220e"
+						"spark.autotune.trackingId": "90bba279-9442-4bd6-bb14-3eba71143336"
 					}
 				},
 				"metadata": {
@@ -5647,7 +5656,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "5ca2207e-dda5-4c51-918b-425cad4ea6a0"
+						"spark.autotune.trackingId": "76aa5bdd-fce3-463a-8d7a-4f3c641f6bfd"
 					}
 				},
 				"metadata": {
@@ -5776,6 +5785,10 @@
 			"properties": {
 				"nbformat": 4,
 				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "spark3p1sm",
+					"type": "BigDataPoolReference"
+				},
 				"sessionProperties": {
 					"driverMemory": "28g",
 					"driverCores": 4,
@@ -5786,7 +5799,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "61ae65bc-2264-40e8-9c9f-943f6b996efa"
+						"spark.autotune.trackingId": "ccc35e4b-f193-4a10-a697-227d8982cf72"
 					}
 				},
 				"metadata": {
@@ -5798,6 +5811,21 @@
 					},
 					"language_info": {
 						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/7b9a4896-4541-483f-bdc7-d8f4ec6be3ee/resourceGroups/rg-oea-newversion22/providers/Microsoft.Synapse/workspaces/syn-oea-newversion22/bigDataPools/spark3p1sm",
+						"name": "spark3p1sm",
+						"type": "Spark",
+						"endpoint": "https://syn-oea-newversion22.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark3p1sm",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -5838,11 +5866,11 @@
 							}
 						},
 						"source": [
-							"oea = OEA('stoeacisd3927b', '1234')\n",
-							"oea.use_workspace('sandbox1')"
+							"oea = OEA()\n",
+							"oea.set_workspace('test-env')"
 						],
 						"outputs": [],
-						"execution_count": 2
+						"execution_count": 4
 					},
 					{
 						"cell_type": "code",
@@ -5862,10 +5890,11 @@
 							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/studentattendance')\n",
 							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/studentattendance')\n",
 							"\n",
-							"def land_studentattendance_day1(expected_record_count):\n",
-							"    path = oea.land_data_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentattendance/part1.csv', 'stage1/Transactional/contoso_sis/v0.1/studentattendance/additive_batch_data')\n",
-							"    df = oea.load_csv(path)\n",
-							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
+							"def land_studentattendance_day1():\n",
+							"    input_df = oea.load_csv_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentattendance/part1.csv', True)\n",
+							"    sink_path = oea.land(df, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', oea.ADDITIVE_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert input_df.count() == sink_df.count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
 							"\n",
 							"def land_studentattendance_day2(expected_record_count):\n",
 							"    path = oea.land_data_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day2/studentattendance/part1.csv', 'stage1/Transactional/contoso_sis/v0.1/studentattendance/additive_batch_data')\n",
@@ -5879,20 +5908,20 @@
 							"\n",
 							"reset_additive_data_tests()\n",
 							"# test1 - Land the first batch of studentattendance data\n",
-							"land_studentattendance_day1(1464)\n",
+							"land_studentattendance_day1()\n",
 							"# test2 - Ingest the data from stage1 into stage2\n",
-							"ingest_studentattendance(1464)\n",
+							"# ingest_studentattendance(1464)\n",
 							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
-							"ingest_studentattendance(1464)\n",
+							"# ingest_studentattendance(1464)\n",
 							"# test4 - Land the second batch of studentattendance data\n",
-							"land_studentattendance_day2(2928)\n",
+							"# land_studentattendance_day2(2928)\n",
 							"# test5 - Ingest the data from stage1 into stage2\n",
-							"ingest_studentattendance(4392)\n",
+							"# ingest_studentattendance(4392)\n",
 							"\n",
 							""
 						],
 						"outputs": [],
-						"execution_count": 18
+						"execution_count": 5
 					},
 					{
 						"cell_type": "code",
@@ -6022,6 +6051,44 @@
 						],
 						"outputs": [],
 						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"f\"{oea.create_run_date()}\""
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
 					}
 				]
 			},
@@ -6044,7 +6111,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "d66dc452-39af-4337-84e4-f8f8320292f6"
+						"spark.autotune.trackingId": "bb6f53ab-97c1-45e3-8aef-4bcfcceb4b11"
 					}
 				},
 				"metadata": {
