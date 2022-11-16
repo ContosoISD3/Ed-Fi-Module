@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "2548bf7e-3fbe-4a65-86d4-e28a17b6ee7b"
+				"spark.autotune.trackingId": "eb127815-e8e0-422a-9a5c-504f5cd501d9"
 			}
 		},
 		"metadata": {
@@ -63,8 +63,8 @@
 					}
 				},
 				"source": [
-					"oea = OEA('stoeacisd3927b', '1234')\n",
-					"oea.use_workspace('sandbox1')"
+					"oea = OEA()\n",
+					"oea.use_workspace('test-env')"
 				],
 				"execution_count": 2
 			},
