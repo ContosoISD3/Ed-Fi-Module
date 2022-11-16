@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "69c169d0-ed3e-4f29-8745-fe03a231617a"
+				"spark.autotune.trackingId": "4902190c-53bc-458c-b736-eb62ccee22ba"
 			}
 		},
 		"metadata": {
@@ -596,7 +596,16 @@
 					"        \"\"\" Loads a csv file as a dataframe based on the path specified \"\"\"\n",
 					"        options = {'format':'csv', 'header':header}\n",
 					"        df = spark.read.load(self.to_url(source_path), **options)\n",
-					"        return df      \n",
+					"        return df     \n",
+					"\n",
+					"    def load_csv_from_url(self, url, header=True):\n",
+					"        \"\"\" Loads a csv file as a dataframe based on the URL specified. \"\"\"  \n",
+					"        if header is False:\n",
+					"            return ValueError(\"Headers are required for loading data from url.\")\n",
+					"        raw_txt = oea.get_text_from_url(url)\n",
+					"        data = [x.split(',') for x in raw_txt.split('\\r\\n')[1:]]\n",
+					"        headers = raw_txt.split('\\r\\n')[0].split(',')\n",
+					"        df = spark.createDataFrame(data, headers) \n",
 					"\n",
 					"    def load_json(self, source_path, multiline=False):\n",
 					"        \"\"\" Loads a json file as a dataframe based on the path specified \"\"\"\n",
