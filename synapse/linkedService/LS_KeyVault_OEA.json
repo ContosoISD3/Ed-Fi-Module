@@ -1,11 +1,11 @@
 {
 	"name": "LS_KeyVault_OEA",
-	"type": "Microsoft.Synapse/workspaces/linkedservices",
 	"properties": {
-		"type": "AzureKeyVault",
 		"annotations": [],
+		"type": "AzureKeyVault",
 		"typeProperties": {
-			"baseUrl": "https://kv-oea-agtest.vault.azure.net/"
+			"baseUrl": "https://kv-oea-newversion22.vault.azure.net/"
 		}
-	}
+	},
+	"type": "Microsoft.Synapse/workspaces/linkedservices"
 }
