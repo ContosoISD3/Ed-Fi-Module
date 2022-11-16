@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "c6f836d0-4c42-47f4-bc11-8de936198dd7"
+				"spark.autotune.trackingId": "fe66b226-865b-48c7-8f24-23229071480f"
 			}
 		},
 		"metadata": {
@@ -265,61 +265,6 @@
 					"# query a sample of the data refined into stage2/refined\n",
 					"oea.display('stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
 					"oea.display('stage2/Refined/contoso_sis/v0.1/sensitive/studentattendance')"
-				],
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/students/part1.csv')\r\n",
-					""
-				],
-				"execution_count": 6
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"data_str.split('\\r\\n')"
-				],
-				"execution_count": 7
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					""
 				],
 				"execution_count": null
 			}
