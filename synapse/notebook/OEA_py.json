@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "5eec2122-c959-4d62-948f-a7788e4153f0"
+				"spark.autotune.trackingId": "391701f2-238e-4fcb-9e73-df4a4799db51"
 			}
 		},
 		"metadata": {
@@ -634,7 +634,7 @@
 					"        for col_name in df.columns:\n",
 					"            if col_name in target_spark_schema.names:\n",
 					"                target_dtype = target_spark_schema[col_name].dataType\n",
-					"                df = df.withColumn(col_name, F.col(col_name).cast(globals()[target_dtype.lower().capitalize() + \"Type\"]()))\n",
+					"                df = df.withColumn(col_name, F.col(col_name).cast(target_dtype))\n",
 					"        return df\n",
 					"\n",
 					"    def load_csv(self, source_path, header=True):\n",
