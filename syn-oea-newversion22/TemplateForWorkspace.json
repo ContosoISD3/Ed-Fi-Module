@@ -4064,7 +4064,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "1dde86cf-b7ac-4fa9-a750-8434d0d59406"
+						"spark.autotune.trackingId": "8697c9a6-edd4-4463-a041-fa6cc22aaf37"
 					}
 				},
 				"metadata": {
@@ -4436,7 +4436,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "dd6e2380-85d4-4acf-94ee-3fceef211607"
+						"spark.autotune.trackingId": "a868f43b-1630-4510-b35c-69cdbb86a4d3"
 					}
 				},
 				"metadata": {
@@ -5029,6 +5029,7 @@
 							"        data = [x.split(',') for x in raw_txt.split('\\r\\n')[1:]]\n",
 							"        headers = raw_txt.split('\\r\\n')[0].split(',')\n",
 							"        df = spark.createDataFrame(data, headers) \n",
+							"        return df\n",
 							"\n",
 							"    def load_json(self, source_path, multiline=False):\n",
 							"        \"\"\" Loads a json file as a dataframe based on the path specified \"\"\"\n",
@@ -5142,7 +5143,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "afb37cf5-0e2d-4c96-8b14-abad94e829df"
+						"spark.autotune.trackingId": "bb7c5b4a-7940-4454-b84a-d267645a85e6"
 					}
 				},
 				"metadata": {
@@ -5237,7 +5238,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "90bba279-9442-4bd6-bb14-3eba71143336"
+						"spark.autotune.trackingId": "99e80f53-02ce-4c19-9ea4-91860be6bf7f"
 					}
 				},
 				"metadata": {
@@ -5656,7 +5657,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "76aa5bdd-fce3-463a-8d7a-4f3c641f6bfd"
+						"spark.autotune.trackingId": "2fb805e8-b7ae-413d-8d68-77e9df4b801a"
 					}
 				},
 				"metadata": {
@@ -5799,7 +5800,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "ccc35e4b-f193-4a10-a697-227d8982cf72"
+						"spark.autotune.trackingId": "de596e77-b7c1-414d-8c0a-43efdd666023"
 					}
 				},
 				"metadata": {
@@ -5850,7 +5851,7 @@
 							"%run OEA_py"
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 18
 					},
 					{
 						"cell_type": "code",
@@ -5870,7 +5871,7 @@
 							"oea.set_workspace('test-env')"
 						],
 						"outputs": [],
-						"execution_count": 4
+						"execution_count": 19
 					},
 					{
 						"cell_type": "code",
@@ -5892,7 +5893,8 @@
 							"\n",
 							"def land_studentattendance_day1():\n",
 							"    input_df = oea.load_csv_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentattendance/part1.csv', True)\n",
-							"    sink_path = oea.land(df, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', oea.ADDITIVE_BATCH_DATA)\n",
+							"    input_df.show()\n",
+							"    sink_path = oea.land(input_df, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', batch_data_type=oea.ADDITIVE_BATCH_DATA)\n",
 							"    sink_df = oea.load_csv(sink_path)\n",
 							"    assert input_df.count() == sink_df.count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
 							"\n",
@@ -5921,7 +5923,7 @@
 							""
 						],
 						"outputs": [],
-						"execution_count": 5
+						"execution_count": 25
 					},
 					{
 						"cell_type": "code",
@@ -6051,44 +6053,6 @@
 						],
 						"outputs": [],
 						"execution_count": null
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"source_hidden": false,
-								"outputs_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"f\"{oea.create_run_date()}\""
-						],
-						"outputs": [],
-						"execution_count": 16
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"source_hidden": false,
-								"outputs_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							""
-						],
-						"outputs": [],
-						"execution_count": null
 					}
 				]
 			},
@@ -6111,7 +6075,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "bb6f53ab-97c1-45e3-8aef-4bcfcceb4b11"
+						"spark.autotune.trackingId": "b00be903-5e67-4323-b082-68d8d780f98b"
 					}
 				},
 				"metadata": {
