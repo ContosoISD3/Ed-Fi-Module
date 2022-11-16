@@ -4610,7 +4610,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "91487abd-3b29-4b44-a38a-66a2eef6f3aa"
+						"spark.autotune.trackingId": "9e6dc9ef-a0c7-4a6c-912a-0c762bff1a97"
 					}
 				},
 				"metadata": {
@@ -5231,7 +5231,7 @@
 							"        for col_name in df.columns:\n",
 							"            if col_name in target_spark_schema.names:\n",
 							"                target_dtype = target_spark_schema[col_name].dataType\n",
-							"                df = df.withColumn(col_name, F.col(col_name).cast(globals()[target_dtype.lower().capitalize() + \"Type\"]()))\n",
+							"                df = df.withColumn(col_name, F.col(col_name).cast(target_dtype))\n",
 							"        return df\n",
 							"\n",
 							"    def load_csv(self, source_path, header=True):\n",
@@ -5332,6 +5332,287 @@
 							"        mssparkutils.fs.append(f\"{self.root_destination}/{path_and_filename}\", data_str, True) # Set the last parameter as True to create the file if it does not exist\n",
 							"\n",
 							"oea = OEA()"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/OEA_tests')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "spark3p2sm",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "fe66b226-865b-48c7-8f24-23229071480f"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/7b9a4896-4541-483f-bdc7-d8f4ec6be3ee/resourceGroups/rg-oea-shellv0p7/providers/Microsoft.Synapse/workspaces/syn-oea-shellv0p7/bigDataPools/spark3p2sm",
+						"name": "spark3p2sm",
+						"type": "Spark",
+						"endpoint": "https://syn-oea-shellv0p7.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark3p2sm",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.2",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Tests for the OEA framework"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"%run OEA_py"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"outputs_hidden": false,
+								"source_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"oea = OEA()\n",
+							"oea.set_workspace('sandbox1')"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"outputs_hidden": false,
+								"source_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"def reset_additive_data_tests():\n",
+							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/studentattendance')\n",
+							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/studentattendance')\n",
+							"\n",
+							"def land_studentattendance_day1(expected_record_count):\n",
+							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentattendance/part1.csv')\n",
+							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', batch_data_type=oea.ADDITIVE_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
+							"\n",
+							"def land_studentattendance_day2(expected_record_count):\n",
+							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day2/studentattendance/part1.csv')\n",
+							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', batch_data_type=oea.ADDITIVE_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
+							"\n",
+							"def ingest_studentattendance(expected_record_count):\n",
+							"    oea.ingest('contoso_sis/v0.1/studentattendance')\n",
+							"    df = oea.load('stage2/Ingested/contoso_sis/v0.1/studentattendance')\n",
+							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
+							"\n",
+							"reset_additive_data_tests()\n",
+							"# test1 - Land the first batch of studentattendance data\n",
+							"land_studentattendance_day1(1464)\n",
+							"# test2 - Ingest the data from stage1 into stage2\n",
+							"ingest_studentattendance(1464)\n",
+							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
+							"ingest_studentattendance(1464)\n",
+							"# test4 - Land the second batch of studentattendance data\n",
+							"land_studentattendance_day2(2928)\n",
+							"# test5 - Ingest the data from stage1 into stage2\n",
+							"ingest_studentattendance(4392)\n",
+							"\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"outputs_hidden": false,
+								"source_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"def reset_delta_data_tests():\n",
+							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/student')\n",
+							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/student')\n",
+							"\n",
+							"def land_students_day1(expected_record_count):\n",
+							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/students/part1.csv')\n",
+							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/student', 'student.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
+							"\n",
+							"def land_students_day2(expected_record_count):\n",
+							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day2/students/part1.csv')\n",
+							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/student', 'student.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
+							"\n",
+							"def ingest_students(expected_record_count):\n",
+							"    oea.ingest('contoso_sis/v0.1/student', 'SIS_ID')\n",
+							"    df = oea.load('stage2/Ingested/contoso_sis/v0.1/student')\n",
+							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
+							"\n",
+							"reset_delta_data_tests()\n",
+							"# test1 - Land the first batch of studentattendance data\n",
+							"land_students_day1(2)\n",
+							"# test2 - Ingest the data from stage1 into stage2\n",
+							"ingest_students(2)\n",
+							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
+							"ingest_students(2)\n",
+							"# test4 - Land the second batch of studentattendance data\n",
+							"land_students_day2(2)\n",
+							"# test5 - Ingest the data from stage1 into stage2\n",
+							"ingest_students(3)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"outputs_hidden": false,
+								"source_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"def reset_snapshot_data_tests():\n",
+							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/studentsectionmark')\n",
+							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/studentsectionmark')\n",
+							"\n",
+							"def land_studentsectionmark_day1(expected_record_count):\n",
+							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentsectionmark/part1.csv')\n",
+							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentsectionmark', 'studentsectionmark.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
+							"\n",
+							"def land_studentsectionmark_day2(expected_record_count):\n",
+							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentsectionmark/part1.csv')\n",
+							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentsectionmark', 'studentsectionmark.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
+							"    sink_df = oea.load_csv(sink_path)\n",
+							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
+							"\n",
+							"def ingest_studentsectionmark(expected_record_count):\n",
+							"    oea.ingest('contoso_sis/v0.1/studentsectionmark')\n",
+							"    df = oea.load('stage2/Ingested/contoso_sis/v0.1/studentsectionmark')\n",
+							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
+							"\n",
+							"reset_snapshot_data_tests()\n",
+							"# test1 - Land the first batch of studentattendance data\n",
+							"land_studentsectionmark_day1(12)\n",
+							"# test2 - Ingest the data from stage1 into stage2\n",
+							"ingest_studentsectionmark(12)\n",
+							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
+							"ingest_studentsectionmark(12)\n",
+							"# test4 - Land the second batch of studentattendance data\n",
+							"land_studentsectionmark_day2(12)\n",
+							"# test5 - Ingest the data from stage1 into stage2\n",
+							"ingest_studentsectionmark(12)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"outputs_hidden": false,
+								"source_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"def refine_contoso_sis(df_source):\n",
+							"    metadata = oea.get_metadata_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/modules/module_catalog/Student_and_School_Data_Systems/metadata.csv')\n",
+							"    #oea.upsert(df_source, 'stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
+							"    df_pseudo, df_lookup = oea.pseudonymize(df_source, metadata['studentattendance'])\n",
+							"    oea.upsert(df_pseudo, 'stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
+							"    oea.upsert(df_lookup, 'stage2/Refined/contoso_sis/v0.1/sensitive/studentattendance')\n",
+							"\n",
+							"oea.process('stage2/Ingested/contoso_sis/v0.1/studentattendance', refine_contoso_sis)\n",
+							"\n",
+							"# query a sample of the data refined into stage2/refined\n",
+							"oea.display('stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
+							"oea.display('stage2/Refined/contoso_sis/v0.1/sensitive/studentattendance')"
 						],
 						"outputs": [],
 						"execution_count": null
@@ -5594,7 +5875,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "e19c46e9-8865-4c4e-b339-b624429d7613"
+						"spark.autotune.trackingId": "e53cadfa-829a-4f79-b339-28fec15bc64f"
 					}
 				},
 				"metadata": {
@@ -5612,7 +5893,6 @@
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"%run /OEA_0p7_py"
 						],
@@ -5975,7 +6255,7 @@
 			"location": "centralus"
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/OEA_tests')]",
+			"name": "[concat(parameters('workspaceName'), '/Notebook 1')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -5995,7 +6275,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "fe66b226-865b-48c7-8f24-23229071480f"
+						"spark.autotune.trackingId": "03b3b8d2-48be-44f4-929d-2a835bc95ace"
 					}
 				},
 				"metadata": {
@@ -6027,33 +6307,20 @@
 				},
 				"cells": [
 					{
-						"cell_type": "markdown",
-						"metadata": {
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"# Tests for the OEA framework"
-						]
-					},
-					{
 						"cell_type": "code",
 						"metadata": {},
 						"source": [
 							"%run OEA_py"
 						],
 						"outputs": [],
-						"execution_count": null
+						"execution_count": 1
 					},
 					{
 						"cell_type": "code",
 						"metadata": {
 							"jupyter": {
-								"outputs_hidden": false,
-								"source_hidden": false
+								"source_hidden": false,
+								"outputs_hidden": false
 							},
 							"nteract": {
 								"transient": {
@@ -6062,196 +6329,13 @@
 							}
 						},
 						"source": [
-							"oea = OEA()\n",
-							"oea.set_workspace('sandbox1')"
+							"oea = OEA()\r\n",
+							"oea.set_workspace('sandbox1')\r\n",
+							"metadata = oea.get_metadata_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/modules/module_catalog/Student_and_School_Data_Systems/metadata.csv')\r\n",
+							"oea.refine('contoso_sis/v0.1/studentattendance', metadata['studentattendance'])"
 						],
 						"outputs": [],
-						"execution_count": null
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"outputs_hidden": false,
-								"source_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"def reset_additive_data_tests():\n",
-							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/studentattendance')\n",
-							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/studentattendance')\n",
-							"\n",
-							"def land_studentattendance_day1(expected_record_count):\n",
-							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentattendance/part1.csv')\n",
-							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', batch_data_type=oea.ADDITIVE_BATCH_DATA)\n",
-							"    sink_df = oea.load_csv(sink_path)\n",
-							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
-							"\n",
-							"def land_studentattendance_day2(expected_record_count):\n",
-							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day2/studentattendance/part1.csv')\n",
-							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentattendance', 'studentattendance.csv', batch_data_type=oea.ADDITIVE_BATCH_DATA)\n",
-							"    sink_df = oea.load_csv(sink_path)\n",
-							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
-							"\n",
-							"def ingest_studentattendance(expected_record_count):\n",
-							"    oea.ingest('contoso_sis/v0.1/studentattendance')\n",
-							"    df = oea.load('stage2/Ingested/contoso_sis/v0.1/studentattendance')\n",
-							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
-							"\n",
-							"reset_additive_data_tests()\n",
-							"# test1 - Land the first batch of studentattendance data\n",
-							"land_studentattendance_day1(1464)\n",
-							"# test2 - Ingest the data from stage1 into stage2\n",
-							"ingest_studentattendance(1464)\n",
-							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
-							"ingest_studentattendance(1464)\n",
-							"# test4 - Land the second batch of studentattendance data\n",
-							"land_studentattendance_day2(2928)\n",
-							"# test5 - Ingest the data from stage1 into stage2\n",
-							"ingest_studentattendance(4392)\n",
-							"\n",
-							""
-						],
-						"outputs": [],
-						"execution_count": null
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"outputs_hidden": false,
-								"source_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							},
-							"collapsed": false
-						},
-						"source": [
-							"def reset_delta_data_tests():\n",
-							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/student')\n",
-							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/student')\n",
-							"\n",
-							"def land_students_day1(expected_record_count):\n",
-							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/students/part1.csv')\n",
-							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/student', 'student.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
-							"    sink_df = oea.load_csv(sink_path)\n",
-							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
-							"\n",
-							"def land_students_day2(expected_record_count):\n",
-							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day2/students/part1.csv')\n",
-							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/student', 'student.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
-							"    sink_df = oea.load_csv(sink_path)\n",
-							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
-							"\n",
-							"def ingest_students(expected_record_count):\n",
-							"    oea.ingest('contoso_sis/v0.1/student', 'SIS_ID')\n",
-							"    df = oea.load('stage2/Ingested/contoso_sis/v0.1/student')\n",
-							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
-							"\n",
-							"reset_delta_data_tests()\n",
-							"# test1 - Land the first batch of studentattendance data\n",
-							"land_students_day1(2)\n",
-							"# test2 - Ingest the data from stage1 into stage2\n",
-							"ingest_students(2)\n",
-							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
-							"ingest_students(2)\n",
-							"# test4 - Land the second batch of studentattendance data\n",
-							"land_students_day2(2)\n",
-							"# test5 - Ingest the data from stage1 into stage2\n",
-							"ingest_students(3)"
-						],
-						"outputs": [],
-						"execution_count": null
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"outputs_hidden": false,
-								"source_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							},
-							"collapsed": false
-						},
-						"source": [
-							"def reset_snapshot_data_tests():\n",
-							"    oea.rm_if_exists('stage1/Transactional/contoso_sis/v0.1/studentsectionmark')\n",
-							"    oea.rm_if_exists('stage2/Ingested/contoso_sis/v0.1/studentsectionmark')\n",
-							"\n",
-							"def land_studentsectionmark_day1(expected_record_count):\n",
-							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentsectionmark/part1.csv')\n",
-							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentsectionmark', 'studentsectionmark.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
-							"    sink_df = oea.load_csv(sink_path)\n",
-							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
-							"\n",
-							"def land_studentsectionmark_day2(expected_record_count):\n",
-							"    data_str = oea.get_text_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/framework/test_data/contoso_sis/day1/studentsectionmark/part1.csv')\n",
-							"    sink_path = oea.land(data_str, 'contoso_sis/v0.1/studentsectionmark', 'studentsectionmark.csv', batch_data_type=oea.DELTA_BATCH_DATA)\n",
-							"    sink_df = oea.load_csv(sink_path)\n",
-							"    assert sink_df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {sink_df.count()}'\n",
-							"\n",
-							"def ingest_studentsectionmark(expected_record_count):\n",
-							"    oea.ingest('contoso_sis/v0.1/studentsectionmark')\n",
-							"    df = oea.load('stage2/Ingested/contoso_sis/v0.1/studentsectionmark')\n",
-							"    assert df.count() == expected_record_count, f'Expected {expected_record_count} records in landed data, but found {df.count()}'\n",
-							"\n",
-							"reset_snapshot_data_tests()\n",
-							"# test1 - Land the first batch of studentattendance data\n",
-							"land_studentsectionmark_day1(12)\n",
-							"# test2 - Ingest the data from stage1 into stage2\n",
-							"ingest_studentsectionmark(12)\n",
-							"# test3 - run the same ingestion a second time and verify that it doesn't change what was ingested (ingestion is idempotent via use of _checkpoints)\n",
-							"ingest_studentsectionmark(12)\n",
-							"# test4 - Land the second batch of studentattendance data\n",
-							"land_studentsectionmark_day2(12)\n",
-							"# test5 - Ingest the data from stage1 into stage2\n",
-							"ingest_studentsectionmark(12)"
-						],
-						"outputs": [],
-						"execution_count": null
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"outputs_hidden": false,
-								"source_hidden": false
-							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							},
-							"collapsed": false
-						},
-						"source": [
-							"def refine_contoso_sis(df_source):\n",
-							"    metadata = oea.get_metadata_from_url('https://raw.githubusercontent.com/microsoft/OpenEduAnalytics/gene/v0.7dev/modules/module_catalog/Student_and_School_Data_Systems/metadata.csv')\n",
-							"    #oea.upsert(df_source, 'stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
-							"    df_pseudo, df_lookup = oea.pseudonymize(df_source, metadata['studentattendance'])\n",
-							"    oea.upsert(df_pseudo, 'stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
-							"    oea.upsert(df_lookup, 'stage2/Refined/contoso_sis/v0.1/sensitive/studentattendance')\n",
-							"\n",
-							"oea.process('stage2/Ingested/contoso_sis/v0.1/studentattendance', refine_contoso_sis)\n",
-							"\n",
-							"# query a sample of the data refined into stage2/refined\n",
-							"oea.display('stage2/Refined/contoso_sis/v0.1/general/studentattendance')\n",
-							"oea.display('stage2/Refined/contoso_sis/v0.1/sensitive/studentattendance')"
-						],
-						"outputs": [],
-						"execution_count": null
+						"execution_count": 7
 					}
 				]
 			},
