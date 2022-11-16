@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "4902190c-53bc-458c-b736-eb62ccee22ba"
+				"spark.autotune.trackingId": "05d4d040-db41-45d9-a738-12758f2a9d8b"
 			}
 		},
 		"metadata": {
@@ -606,6 +606,7 @@
 					"        data = [x.split(',') for x in raw_txt.split('\\r\\n')[1:]]\n",
 					"        headers = raw_txt.split('\\r\\n')[0].split(',')\n",
 					"        df = spark.createDataFrame(data, headers) \n",
+					"        return df\n",
 					"\n",
 					"    def load_json(self, source_path, multiline=False):\n",
 					"        \"\"\" Loads a json file as a dataframe based on the path specified \"\"\"\n",
