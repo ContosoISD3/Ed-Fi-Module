@@ -392,10 +392,6 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebook": {
-									"referenceName": "Refine_EdFi",
-									"type": "NotebookReference"
-								},
 								"parameters": {
 									"api_version": {
 										"value": {
